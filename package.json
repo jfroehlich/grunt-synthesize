@@ -1,7 +1,7 @@
 {
   "name": "grunt-synthesize",
   "description": "A grunt plugin to synthesize templates, variables and content to a static file.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/jfroehlich/grunt-synthesize",
   "author": {
     "name": "Johannes Fröhlich",
@@ -37,7 +37,7 @@
     "grunt": "~0.4.2"
   },
   "keywords": [
-    "gruntplugin"
+    "generator","static site", "grunt", "gruntplugin"
   ],
   "dependencies": {
     "chalk": "~0.4.0",

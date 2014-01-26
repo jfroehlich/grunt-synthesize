@@ -5,7 +5,7 @@
  * Copyright (c) 2014 Johannes Fröhlich
  * Licensed under the MIT license.
  */
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 	'use strict';
 
 	var path = require('path'),
@@ -17,7 +17,7 @@ module.exports = function(grunt) {
 
 	var candidateRegex = /^---[\r\n?|\n]/,
 		matterRegex = /^((---[\r\n?|\n])([\s\S]+?))\2/m,
-		tally = {dirs: 0, files: 0},
+		tally = {dirs: 0, copied: 0, synthesized: 0},
 		options = {};
 
 	function writeFile(srcPath, destPath, content, options) {
@@ -27,10 +27,23 @@ module.exports = function(grunt) {
 		}
 	}
 
+	function render(context, content) {
+		context = (typeof context === 'object') ? context : Array.prototype.slice.call(arguments, 1);
+        content = content.replace(/\{\{|\}\}|\{(\w+)\}/g, function (m, n) {
+			if (m === '{{') {
+				return '{';
+            } else if (m === '}}') {
+				return '}';
+            }
+			return context[n];
+        });
+        return content;
+    }
+
 	function process(file, next) {
 		var src = file.src,
 			dest = file.dest,
-			layout = options.defaultLayout,
+			template = options.defaultTemplate,
 			content = '';
 
 		if (grunt.file.isDir(src)) {
@@ -42,9 +55,9 @@ module.exports = function(grunt) {
 			// When the file does not have a front matter write it to the
 			// destination and return
 			if (!candidateRegex.test(content) || !matterRegex.test(content)) {
-				grunt.log.writeln(src + ' - copy -> ' + dest);
+				grunt.verbose.writeln(src + ' - copy -> ' + dest);
 				writeFile(src, dest, content, options);
-				tally.files++;			
+				tally.copied++;			
 				return next();
 			}
 
@@ -54,7 +67,20 @@ module.exports = function(grunt) {
 				renderer = consolidate[options.engine];
 
 			content = content.replace(matches[0], ''); // Remove the front matter from the content
-			layout = ctx.layout || layout; // Use the given layout or the default layout
+			template = ctx.template || template; // Use the given layout or the default layout
+			
+			// When there is no engine specified, we use the build in method.
+			if (!renderer) {
+				content = render(ctx, content);
+				grunt.verbose.writeln(src + ' - synthesize -> ' + dest);
+				writeFile(src, dest, result, options);
+				tally.synthesized++;
+				return next();
+			}
+
+			if (!template) {
+				grunt.fail.warn('No template defined for synthesis of "' + src + '".');
+			}
 
 			// First pass: Render the content with the context
 			renderer.render(content, ctx, function (err, result) {
@@ -64,13 +90,13 @@ module.exports = function(grunt) {
 				ctx.content = result;
 
 				// Second pass: Render the template with the context
-				renderer('layouts/base.html', ctx, function (err, result) {
+				renderer(template, ctx, function (err, result) {
 					if (err) {
 						throw grunt.log.error('error: Converting ' + src + '->' + dest + ' - ' + err);
 					}
-					grunt.log.writeln(src + ' - construct -> ' + dest);
+					grunt.verbose.writeln(src + ' - construct -> ' + dest);
 					writeFile(src, dest, result, options);
-					tally.files++;
+					tally.synthesized++;
 					next(err);
 				});
 			});
@@ -80,10 +106,11 @@ module.exports = function(grunt) {
 	grunt.registerMultiTask('synthesize', 'Synthesize templates, variables and content to static files.', function() {
 		options = this.options({
 			encoding: grunt.file.defaultEncoding,
-			excludes: [],
+			//excludes: [],
 			//preProcess: false,
+			//postProcess: false,
 			//data: {},
-			defaultLayout: 'layouts/default.html',
+			defaultTemplate: '',
 			concurrency: require('os').cpus().length,
 			mode: false,
 			engine: ''
@@ -93,6 +120,15 @@ module.exports = function(grunt) {
 			done = this.async();
 		
 		q.drain = function () {
+			if (tally.dirs) {
+				grunt.log.writeln('Created ' + chalk.cyan(tally.dirs.toString()) + ' directories');
+			}
+		    if (tally.copied) {
+		      grunt.log.writeln('Copied ' + chalk.cyan(tally.copied.toString()) + (tally.copied === 1 ? ' file' : ' files'));
+		    }
+		    if (tally.synthesized) {
+		      grunt.log.writeln('Synthesized ' + chalk.cyan(tally.synthesized.toString()) + (tally.synthesized === 1 ? ' file' : ' files'));
+		    }
 			
 			done();
 		};

@@ -46,17 +46,43 @@ grunt.initConfig({
 
 ### Options
 
-#### options.separator
+#### options.engine
 Type: `String`
-Default value: `',  '`
+Default value: `''`
 
-A string value that is used to do something with whatever.
+The template engine to use when synthesizing content and variables to the 
+resulting file. This should be a supported engine of 
+[consolidate](https://github.com/visionmedia/consolidate.js/) and must be
+installed separately.
 
-#### options.punctuation
+When no engine is defined, a simple replacement will be used. It will replace
+all occurrences of a placeholder `{{ variable }}` with the variables value from
+the front matter.
+
+
+#### options.defaultTemplate
 Type: `String`
-Default value: `'.'`
+Default value: `''`
 
-A string value that is used to do something else with whatever else.
+The path to the default template file to use when the content file does not
+have a template defined as `template` in the font matter.
+
+
+#### options.concurrency
+Type: `String`
+Default value: The number of available CPUs
+
+The number of files processed in parallel.
+
+
+#### options.mode
+Type: `Boolean` or `Number`
+Default value: `false`
+
+Whether to copy or set the existing file permissions. Set to true to copy the 
+existing file permissions. Or set to the mode, i.e.: 0644, that copied files 
+will be set to.
+
 
 ### Usage Examples
 
