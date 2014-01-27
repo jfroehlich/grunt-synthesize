@@ -35,7 +35,8 @@ module.exports = function (grunt) {
             } else if (m === '}}') {
 				return '}';
             }
-			return context[n];
+			//return context[n];
+			return grunt.util.namespace(context, n);
         });
         return content;
     }
