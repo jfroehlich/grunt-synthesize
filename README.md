@@ -83,6 +83,12 @@ Whether to copy or set the existing file permissions. Set to true to copy the
 existing file permissions. Or set to the mode, i.e.: 0644, that copied files 
 will be set to.
 
+#### options.data
+Type: `Object`
+Default value: `null`
+
+A set of global attributes that can be accessed as `site` in content and 
+templates.
 
 ### Usage Examples
 
