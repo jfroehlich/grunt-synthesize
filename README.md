@@ -56,8 +56,11 @@ resulting file. This should be a supported engine of
 installed separately.
 
 When no engine is defined, a simple replacement will be used. It will replace
-all occurrences of a placeholder `{{ variable }}` with the variables value from
+all occurrences of a placeholder `{variable}` with the variables value from
 the front matter.
+
+As this is a simple substitution, nested attributes (like `site`) can't be
+accessed.
 
 
 #### options.defaultTemplate
