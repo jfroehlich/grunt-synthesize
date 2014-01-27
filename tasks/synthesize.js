@@ -68,6 +68,11 @@ module.exports = function (grunt) {
 
 			content = content.replace(matches[0], ''); // Remove the front matter from the content
 			template = ctx.template || template; // Use the given layout or the default layout
+
+			// Set the global attributes
+			if (options.data) {
+				ctx.site = options.data;
+			}
 			
 			// When there is no engine specified, we use the build in method.
 			if (!renderer) {
@@ -109,7 +114,7 @@ module.exports = function (grunt) {
 			//excludes: [],
 			//preProcess: false,
 			//postProcess: false,
-			//data: {},
+			data: null,
 			defaultTemplate: '',
 			concurrency: require('os').cpus().length,
 			mode: false,
