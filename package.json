@@ -36,11 +36,15 @@
     "grunt": "~0.4.2"
   },
   "keywords": [
-    "generator","static site", "grunt", "gruntplugin"
+    "generator",
+    "static site",
+    "grunt",
+    "gruntplugin"
   ],
   "dependencies": {
     "chalk": "~0.4.0",
     "yaml-js": "0.0.8",
-    "consolidate": "~0.10.0"
+    "consolidate": "~0.10.0",
+    "getobject": "~0.1.0"
   }
 }

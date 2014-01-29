@@ -29,15 +29,26 @@ module.exports = function (grunt) {
 
 	function render(context, content) {
 		context = (typeof context === 'object') ? context : Array.prototype.slice.call(arguments, 1);
-        content = content.replace(/\{\{|\}\}|\{(\w+)\}/g, function (m, n) {
+        content = content.replace(/\{\{|\}\}|\{([\w\.]+)\}/g, function (m, n) {
 			if (m === '{{') {
 				return '{';
             } else if (m === '}}') {
 				return '}';
             }
+			
+			var list = n.split('.'),
+				result = context;
+			while (list.length) {
+		        var token = list.shift();
+				if (token in result) {
+		            result = result[token];
+		        } else {
+				    return '';
+				}
+			}
+			return result;
 			//return context[n];
-			return grunt.util.namespace(context, n);
-        });
+		});
         return content;
     }
 
@@ -79,7 +90,7 @@ module.exports = function (grunt) {
 			if (!renderer) {
 				content = render(ctx, content);
 				grunt.verbose.writeln(src + ' - synthesize -> ' + dest);
-				writeFile(src, dest, result, options);
+				writeFile(src, dest, content, options);
 				tally.synthesized++;
 				return next();
 			}
@@ -112,7 +123,6 @@ module.exports = function (grunt) {
 	grunt.registerMultiTask('synthesize', 'Synthesize templates, variables and content to static files.', function() {
 		options = this.options({
 			encoding: grunt.file.defaultEncoding,
-			//excludes: [],
 			//preProcess: false,
 			//postProcess: false,
 			data: null,
@@ -150,12 +160,12 @@ module.exports = function (grunt) {
 				var dest = file.dest;
 
 				if (!file.orig.expand) {
-					// When it's an already existing file we strip to the dirname
+					// When it's an already existing file we strip to the directory 
 					if (grunt.file.exists(dest) && grunt.file.isFile(dest)) {
 						dest = path.dirname(dest);
 					}
 					
-					// If it's a dirname we join it with the source
+					// If it's a directory we join it with the source
 					if (dest.indexOf('/', dest.length - 1) !== -1) {
 						dest = path.join(dest, path.basename(src));
 						dest = (process.platform === 'wind32') ? dest.replace(/\\/g, '/') : dest;
