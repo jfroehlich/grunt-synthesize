@@ -47,7 +47,6 @@ module.exports = function (grunt) {
 				}
 			}
 			return result;
-			//return context[n];
 		});
         return content;
     }
@@ -95,9 +94,6 @@ module.exports = function (grunt) {
 				return next();
 			}
 
-			if (!template) {
-				grunt.fail.warn('No template defined for synthesis of "' + src + '".');
-			}
 
 			// First pass: Render the content with the context
 			renderer.render(content, ctx, function (err, result) {
@@ -106,12 +102,19 @@ module.exports = function (grunt) {
 				}
 				ctx.content = result;
 
+				if (!template) {
+					grunt.verbose.writeln(src + ' - synthesize -> ' + dest);
+					writeFile(src, dest, result, options);
+					tally.synthesized++;
+					return next(err);
+				}
+
 				// Second pass: Render the template with the context
 				renderer(template, ctx, function (err, result) {
 					if (err) {
 						throw grunt.log.error('error: Converting ' + src + '->' + dest + ' - ' + err);
 					}
-					grunt.verbose.writeln(src + ' - construct -> ' + dest);
+					grunt.verbose.writeln(src + ' - synthesize -> ' + dest);
 					writeFile(src, dest, result, options);
 					tally.synthesized++;
 					next(err);
@@ -135,13 +138,16 @@ module.exports = function (grunt) {
 		var q = async.queue(process, options.concurrency),
 			done = this.async();
 		
+		// 
 		q.drain = function () {
 			if (tally.dirs) {
 				grunt.log.writeln('Created ' + chalk.cyan(tally.dirs.toString()) + ' directories');
 			}
+
 		    if (tally.copied) {
 		      grunt.log.writeln('Copied ' + chalk.cyan(tally.copied.toString()) + (tally.copied === 1 ? ' file' : ' files'));
 		    }
+
 		    if (tally.synthesized) {
 		      grunt.log.writeln('Synthesized ' + chalk.cyan(tally.synthesized.toString()) + (tally.synthesized === 1 ? ' file' : ' files'));
 		    }
