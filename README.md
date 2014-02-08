@@ -1,4 +1,3 @@
-
 grunt-synthesize
 ===============================================================================
 
@@ -139,4 +138,4 @@ code using [Grunt](http://gruntjs.com/).
 
 ## Release History
 
-_(Nothing yet)_
+- **0.1.x** No official release yet.
