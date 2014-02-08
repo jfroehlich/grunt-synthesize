@@ -13,7 +13,8 @@ module.exports = function (grunt) {
 		chalk = require('chalk'),
 		yaml = require('yaml-js'),
 		consolidate = require('consolidate'),
-		async = require('async');
+		async = require('async'),
+		_ = require('lodash');
 
 	var candidateRegex = /^---[\r\n?|\n]/,
 		matterRegex = /^((---[\r\n?|\n])([\s\S]+?))\2/m,
@@ -73,17 +74,17 @@ module.exports = function (grunt) {
 			}
 
 			// Find the matches and replace leading/trailing space
-			var matches = matterRegex.exec(content),
-				ctx = yaml.load(matches[3].replace(/^\s+|\s+$/g, '')) || {},
+			var ctx = {},
+				matches = matterRegex.exec(content),
 				renderer = consolidate[options.engine];
-
+			
+			if (options.data) {
+				ctx = _.merge(ctx, options.data);
+			}
+			ctx = _.merge(ctx, yaml.load(matches[3].replace(/^\s+|\s+$/g, '')));
 			content = content.replace(matches[0], ''); // Remove the front matter from the content
 			template = ctx.template || template; // Use the given layout or the default layout
 
-			// Set the global attributes
-			if (options.data) {
-				ctx.site = options.data;
-			}
 			
 			// When there is no engine specified, we use the build in method.
 			if (!renderer) {
